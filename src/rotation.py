@@ -28,11 +28,16 @@ def build_combo_pool() -> list[tuple[str, str]]:
 
 
 def todays_combos(run_date: date | None = None, max_combos: int = 8) -> list[tuple[str, str]]:
-    """Retorna até `max_combos` combinações (nicho, cidade) para o dia informado,
-    avançando pelo pool de rodízio a cada dia sem repetir por muito tempo."""
+    """Retorna até `max_combos` combinações (nicho, cidade) para o dia informado.
+
+    Avança por BLOCOS de `max_combos` (não por 1 posição/dia): cada dia pega um
+    lote inteiramente novo do pool, e o rodízio nacional completo se repete a
+    cada `len(pool) / max_combos` dias. Avançar só 1 posição/dia faria dias
+    consecutivos compartilharem quase todas as combinações entre si.
+    """
     run_date = run_date or date.today()
     pool = build_combo_pool()
     day_index = (run_date - _EPOCH).days
-    start = day_index % len(pool)
+    start = (day_index * max_combos) % len(pool)
     ordered = pool[start:] + pool[:start]
     return ordered[:max_combos]
